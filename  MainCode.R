@@ -4,6 +4,7 @@ library(rio)
 #tester
 
 strokeData <- import("healthcare-dataset-stroke-data.csv")
+strokeData
 
 ui <- fluidPage("This is course of statistical computing with R")
 server <- function(input, output) {}
