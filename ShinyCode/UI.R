@@ -1,33 +1,34 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
-
 library(shiny)
 
-# Define UI for application that draws a histogram
-fluidPage(
+strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
+#navbarPage creates mutiple pages
+shinyUI(navbarPage(
+title = "My Shiny App",
+    
+    # Defining each tab panel creates a new page
+    tabPanel("Testing page 1",
+      h1("This is a header"),
+      p("This is a paragraph")
+    ),
 
-    # Sidebar with a slider input for number of bins
-    sidebarLayout(
+
+    tabPanel("Testing page 2",
+      h1("hi"),
+      sidebarLayout(
         sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+          
+          # Id, title, and panel with choices using data set
+          selectInput("xvar", "X Variable:", choices = c("Select X Variable", colnames(strokeDataSet))),
+          selectInput("yvar", "Y Variable:", choices = c("Select y Variable", colnames(strokeDataSet)))
         ),
-
-        # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("distPlot")
+          # creates scatterplot object
+          plotOutput("scatterplot")
         )
+      )
     )
+  )
 )
+
+  
