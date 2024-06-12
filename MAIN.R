@@ -4,4 +4,3 @@ library(readr)
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 strokeDataSet
 
-
