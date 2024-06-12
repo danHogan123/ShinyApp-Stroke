@@ -1,13 +1,17 @@
 library(shiny)
+library(shinythemes)
 
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 #navbarPage creates mutiple pages
-shinyUI(navbarPage(
-title = "My Shiny App",
+shinyUI(
+  
+  navbarPage(
+    theme = shinytheme("darkly"), #Add your theme name here
+    title = "Stroke Prediction Shiny App",
     
     # Defining each tab panel creates a new page
-    tabPanel("Testing page 1",
+    tabPanel("Variable Analysis",
       h1("This is a header"),
       p("This is a paragraph")
     ),
