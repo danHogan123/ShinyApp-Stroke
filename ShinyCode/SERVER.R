@@ -19,8 +19,7 @@ shinyServer(function(input, output){
     }
     
   })
-<<<<<<< Updated upstream
-=======
+
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
       if (pred == "Gender") {
@@ -69,7 +68,6 @@ shinyServer(function(input, output){
   })
   
   
-  
->>>>>>> Stashed changes
+
   
 })
