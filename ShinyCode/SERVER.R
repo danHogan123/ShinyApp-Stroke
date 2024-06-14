@@ -24,6 +24,8 @@ shinyServer(function(input, output){
     }
     
   })
+  
+  #Page 3 regression 
   output$dynamic_inputs <- renderUI({
     lapply(input$predictors, function(predictor) {
       numericInput(
