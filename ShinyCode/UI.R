@@ -38,7 +38,27 @@ shinyUI(
           plotOutput("scatterplot")
         )
       )
-    )
+    ),
+    tabPanel("Regression testing",
+      h1("testing regression prediction for stroke"),
+      sidebarLayout(
+        sidebarPanel(
+          checkboxGroupInput(
+            inputId = "predictors",
+            label = "Select Predictors:",
+            choices = colnames(strokeDataSet)[colnames(strokeDataSet) != "stroke"],  # Exclude the target variable
+            selected = colnames(strokeDataSet)[colnames(strokeDataSet) != "am"][1]  # Select the first predictor by default
+            ),
+            uiOutput("dynamic_inputs"),
+            actionButton("predict", "Predict")
+          ),
+        mainPanel(
+          verbatimTextOutput("prediction_result")
+          )
+          
+        )
+      )
+
   )
 )
 

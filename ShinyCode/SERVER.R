@@ -24,5 +24,36 @@ shinyServer(function(input, output){
     }
     
   })
+  output$dynamic_inputs <- renderUI({
+    lapply(input$predictors, function(predictor) {
+      numericInput(
+        inputId = paste0("input_", predictor),
+        label = paste("Enter value for", predictor, ":"),
+        value = 0
+      )
+    })
+  })
+  
+  observeEvent(input$predict, {
+    # Prepare data for prediction
+    new_data <- data.frame(matrix(ncol = length(input$predictors), nrow = 1))
+    colnames(new_data) <- input$predictors
+    
+    for (predictor in input$predictors) {
+      new_data[1, predictor] <- input[[paste0("input_", predictor)]]
+    }
+    
+    # Fit logistic regression model
+    formula <- as.formula(paste("stroke ~", paste(input$predictors, collapse = " + ")))
+    model <- glm(formula, data = strokeDataSet, family = binomial)
+    
+    # Make prediction
+    prediction <- predict(model, newdata = new_data, type = "response")
+    
+    # Display result
+    output$prediction_result <- renderPrint({
+      cat("Predicted Probability of Stroke:", round(prediction, 3))
+    })
+  })
   
 })
