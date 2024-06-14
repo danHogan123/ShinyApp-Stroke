@@ -29,7 +29,64 @@ shinyServer(function(input, output){
           choices = c("Male", "Female"),
           selected = "Male"
         )
-      } else {
+      }
+      else if (pred == "Age"){
+        sliderInput(
+          inputId = "input_Age",
+          label = "Age",
+          18, 90, 30
+        )
+      }
+      else if (pred == "Hypertension"){
+        selectInput(
+          inputId = "input_Hypertension",
+          label = "Hypertension",
+          choices = c("Yes", "No"),
+          selected = "Yes"
+        )
+      }
+      else if (pred == "Heart Disease"){
+        selectInput(
+          inputId = "input_HeartDisease",
+          label = "Heart Disease",
+          choices = c("Yes", "No"),
+          selected = "Yes"
+        )}
+      else if (pred == "Ever Married"){
+        selectInput(
+          inputId = "input_EverMarried",
+          label = "Ever Married",
+          choices = c("Yes", "No"),
+          selected = "Yes"
+        )}
+      else if (pred == "Work Type"){
+        selectInput(
+          inputId = "input_WorkType",
+          label = "Work Type",
+          choices = c("Private", "Government", "Self-Employed", "Never Worked"),
+          selected = "Private"
+        )}
+      else if (pred == "Residence Type"){
+        selectInput(
+          inputId = "input_ResidenceType",
+          label = "Residence Type",
+          choices = c("Urban", "Rural"),
+          selected = "Urban"
+        )}
+      else if (pred == "Avg Glucose Level"){
+        numericInput( # Subject to change yall
+          inputId = "input_AvgGlucoseLevel",
+          label = "Average Glucose Level",
+          min = 50, max = 300, value = 140
+        )}
+      else if (pred == "Smoking Status"){
+        selectInput(
+          inputId = "input_SmokingStatus",
+          label = "Smoking Status",
+          choices = c("Never Smoked", "Smokes", "Formerly Smoked"),
+          selected = "Never Smoked" 
+        )}
+      else {
         numericInput(
           inputId = paste0("input_", pred),
           label = pred,
