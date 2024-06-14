@@ -1,4 +1,6 @@
 library(shiny)
+library(readr)
+library(tidyverse)
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 shinyServer(function(input, output){
