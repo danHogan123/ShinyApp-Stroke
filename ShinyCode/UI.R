@@ -31,7 +31,7 @@ shinyUI(
           selectInput("xvar", "X Variable:", 
             c("Select X Variable", colnames(select(strokeDataSet, -id, - Gender)))),
           selectInput("catvar", "Categorial Variable:",
-            c("Select a Variable", colnames(select(strokeDataSet, -Age, -BMI))))
+            c("Select a Variable", colnames(select(strokeDataSet, -Age, -BMI, -id))))
         ),
         mainPanel(
           # creates scatterplot object
@@ -46,8 +46,8 @@ shinyUI(
           checkboxGroupInput(
             inputId = "predictors",
             label = "Select Predictors:",
-            choices = colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("stroke", "id"))],  # Exclude the target variable
-            selected = colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("stroke", "id"))[1]]  # Select the first predictor by default
+            choices = colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("Stroke", "id"))],  # Exclude the target variable
+            selected = colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("Stroke", "id"))[1]]  # Select the first predictor by default
             ),
             uiOutput("dynamic_inputs"),
             actionButton("predict", "Predict")

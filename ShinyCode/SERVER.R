@@ -9,12 +9,6 @@ shinyServer(function(input, output){
     
     # Check if both xvar and yvar are selected
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
-      # Plot the scatterplot
-      # plot(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]],
-      #      xlab = input$xvar, ylab = input$yvar,
-      #      main = paste("Scatterplot of", input$xvar, "vs", input$yvar)
-      #      
-      # )+ geom_point(aes(color = .data[[input$catvar]]))
       
       ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) + 
         geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
@@ -36,6 +30,7 @@ shinyServer(function(input, output){
           choices = c("male", "female")
         )
       }
+      
       else {
         numericInput(
           inputId = paste0("input_", predictor),
@@ -55,8 +50,12 @@ shinyServer(function(input, output){
       new_data[1, predictor] <- input[[paste0("input_", predictor)]]
     }
     
+    if ("Gender" %in% input$predictors) {
+      new_data$gender <- factor(new_data$gender, levels = levels(strokeDataSet$gender))
+    }
+    
     # Fit logistic regression model
-    formula <- as.formula(paste("stroke ~", paste(input$predictors, collapse = " + ")))
+    formula <- as.formula(paste("Stroke ~", paste(input$predictors, collapse = " + ")))
     model <- glm(formula, data = strokeDataSet, family = binomial)
     
     # Make prediction
