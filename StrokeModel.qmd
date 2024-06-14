@@ -1,0 +1,106 @@
+---
+title: "StrokeModell"
+author: "Wellington Gray"
+format:
+html:
+self-contained: true
+---
+
+```{r}
+library(tidymodels)
+library(dplyr)
+library(yardstick)
+library(ggplot2)
+
+# Load the dataset
+StrokeData <- read.csv("C:\\Users\\Wellington\\Downloads\\Stroke\\healthcare-dataset-stroke-data.csv")
+
+# Convert necessary variables to factors and select relevant columns
+StrokeData <- StrokeData %>%
+  mutate(across(c(Gender, Hypertension, HeartDisease, EverMarried, WorkType, ResidenceType, SmokingStatus, Stroke), as.factor)) %>%
+  select(Gender, Age, Hypertension, HeartDisease, EverMarried, WorkType, ResidenceType, AvgGlucoseLevel, BMI, SmokingStatus, Stroke)
+```
+
+```{r}
+# Exclude patients below 18 years old and categorize BMI and glucose levels
+StrokeData <- StrokeData %>%
+  filter(Age >= 18) %>%
+  mutate(
+    BMI_Category = case_when(
+      BMI < 18.5 ~ "Underweight",
+      BMI < 25 ~ "Healthy Weight",
+      BMI < 30 ~ "Overweight",
+      BMI < 35 ~ "Obese",
+      TRUE ~ "Severely Obese"
+    ),
+    Glucose_Category = case_when(
+      AvgGlucoseLevel < 70 ~ "Very Low",
+      AvgGlucoseLevel < 100 ~ "Low",
+      AvgGlucoseLevel < 126 ~ "Healthy",
+      AvgGlucoseLevel < 200 ~ "High",
+      TRUE ~ "Very High"
+    )
+  )
+StrokeData <- StrokeData %>%
+  select(Gender, Age, Hypertension, HeartDisease, EverMarried, WorkType, ResidenceType, SmokingStatus, Stroke, BMI_Category, Glucose_Category)
+```
+
+```{r}
+# Adjust the recipe for handling missing values
+StrokeRecipe <- recipe(Stroke ~ ., data = StrokeData) %>%
+  step_zv(all_predictors()) %>%
+  step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_median(all_numeric_predictors()) %>%
+  step_corr(all_numeric_predictors(), threshold = 0.8) %>%
+  step_dummy(all_nominal_predictors(), -all_outcomes()) %>%
+  prep()
+
+# Split the data
+set.seed(123)
+data_split <- initial_split(StrokeData, prop = 0.75)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+
+# Apply the recipe
+train_data <- bake(StrokeRecipe, new_data = train_data)
+test_data <- bake(StrokeRecipe, new_data = test_data)
+```
+
+```{r}
+# Model specification using glmnet for regularization
+logistic_spec <- logistic_reg(mode = "classification", penalty = 0) %>%
+  set_engine("glmnet")
+logistic_fit <- fit(logistic_spec, Stroke ~ ., data = train_data)
+```
+
+```{r}
+# Extract model coefficients
+coefs <- logistic_fit %>% 
+  tidy() %>%
+  filter(term != "(Intercept)")
+
+# Plot the coefficients
+ggplot(coefs, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_point() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Effect Sizes of Predictors in Logistic Regression Model",
+       x = "Coefficient Estimate",
+       y = "Predictors") +
+  theme_minimal()
+```
+
+```{r}
+# Generate predictions and calculate metrics
+predictions <- predict(logistic_fit, test_data, type = "prob")
+class_predictions <- predict(logistic_fit, test_data, type = "class")
+
+# Bind predictions
+results <- bind_cols(test_data, predictions, class_predictions %>% mutate(.pred_class = factor(.pred_class, levels = c("0", "1"))))
+
+# Calculate metrics
+metrics <- metric_set(roc_auc, accuracy, sensitivity, specificity)
+evaluation_scores <- metrics(data = results, truth = Stroke, .pred_class)
+
+# Output the evaluation scores
+evaluation_scores
+```
