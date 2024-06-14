@@ -7,6 +7,8 @@ self-contained: true
 ---
 
 ```{r}
+#This chunk establishes the libraries we wil use, turns our categorical variables into categorical variables, and then selects every variable to be in our model except ID
+
 library(tidymodels)
 library(dplyr)
 library(yardstick)
@@ -22,6 +24,8 @@ StrokeData <- StrokeData %>%
 ```
 
 ```{r}
+#This chunk removes people below 18 from our dataset as they heavily skew our data due to having inherently different values for many different variables. It also turns BMI and GlucoseLevel into categories in order to account for their large amount of variance due to outliers, and make the model much more accurate and generalizeable in calculating these values. 
+
 # Exclude patients below 18 years old and categorize BMI and glucose levels
 StrokeData <- StrokeData %>%
   filter(Age >= 18) %>%
@@ -46,6 +50,8 @@ StrokeData <- StrokeData %>%
 ```
 
 ```{r}
+#This chunk establishes the recipe for manipulating our Stroke Data. It cleans all of our data by replacing our na values with medians, and accounts for covariance in our model along with creating dummy variables as it is a logistic regression.
+
 # Adjust the recipe for handling missing values
 StrokeRecipe <- recipe(Stroke ~ ., data = StrokeData) %>%
   step_zv(all_predictors()) %>%
@@ -67,6 +73,8 @@ test_data <- bake(StrokeRecipe, new_data = test_data)
 ```
 
 ```{r}
+#This chunk establishes the logistic regression model used to calculate stroke. It is utilizing ridge regression and penalizing variables with very large residuals. It is not LASSO so it does not remove any variables from the model
+
 # Model specification using glmnet for regularization
 logistic_spec <- logistic_reg(mode = "classification", penalty = 0) %>%
   set_engine("glmnet")
@@ -74,6 +82,8 @@ logistic_fit <- fit(logistic_spec, Stroke ~ ., data = train_data)
 ```
 
 ```{r}
+#This chunk graphs how each variable affects your probability of having a stroke
+
 # Extract model coefficients
 coefs <- logistic_fit %>% 
   tidy() %>%
@@ -90,6 +100,8 @@ ggplot(coefs, aes(x = estimate, y = reorder(term, estimate))) +
 ```
 
 ```{r}
+#This chunk doesnt even work right now but it attempts to create a confusion matrix in order to calculate the efficacy of our model in predicting stroke
+
 # Generate predictions and calculate metrics
 predictions <- predict(logistic_fit, test_data, type = "prob")
 class_predictions <- predict(logistic_fit, test_data, type = "class")
@@ -103,4 +115,48 @@ evaluation_scores <- metrics(data = results, truth = Stroke, .pred_class)
 
 # Output the evaluation scores
 evaluation_scores
+``
+```
+
+```{r}
+#This chunk counts the amount of people that had a stroke in the dataset
+StrokeData$Stroke <- as.factor(StrokeData$Stroke)
+
+# Filter the data to include only those cases where a stroke has occurred
+stroke_cases <- filter(StrokeData, Stroke == "1")
+
+# Count the number of stroke cases
+number_of_strokes <- nrow(stroke_cases)
+```
+
+```{r}
+#This chunk creates a correlation matrix of the interactions of every variable in the data set
+
+StrokeData <- read.csv("C:\\Users\\Wellington\\Downloads\\Stroke\\healthcare-dataset-stroke-data.csv") |>
+  select(-id)
+
+# Print the structure of the dataset to understand what transformations are needed
+str(StrokeData)
+
+# Convert all factor and character columns to numeric via one-hot encoding
+# Assuming character variables need to be transformed
+StrokeData_numeric <- StrokeData %>%
+  mutate(across(where(is.character), as.factor)) %>%  # Ensure all character columns are factors
+  mutate(across(where(is.factor), as.numeric)) %>%   # Convert factors to numeric if ordinal; otherwise use dummy variables
+  # For non-ordinal factors, create dummy variables
+  mutate(across(where(is.factor), ~ as.numeric(.x == levels(.x)[2]))) %>%
+  # Optionally, drop original non-numeric columns if they were not transformed in-line
+  select(where(is.numeric))
+
+# Compute the correlation matrix using complete cases to handle any NAs
+correlation_matrix <- cor(StrokeData_numeric, use = "complete.obs")
+
+# Print the correlation matrix
+print(correlation_matrix)
+
+# Optional: Visualize the correlation matrix using the corrplot package
+if (!require("corrplot")) install.packages("corrplot")
+library(corrplot)
+corrplot(correlation_matrix, method = "color")
+
 ```
