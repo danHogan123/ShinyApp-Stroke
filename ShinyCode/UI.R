@@ -46,7 +46,7 @@ shinyUI(
           checkboxGroupInput(
             inputId = "predictors",
             label = "Select Predictors:",
-            choices = c(colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("stroke", "id", "BMI"))], "Bmi"),  # Exclude the target variable
+            choices = c(colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("Stroke", "id", "BMI"))], "Bmi"),  # Exclude the target variable
             selected = colnames(strokeDataSet)[!(colnames(strokeDataSet) %in% c("Stroke", "id", "BMI"))[1]]  # Select the first predictor by default
             ),
             uiOutput("dynamic_inputs"),
