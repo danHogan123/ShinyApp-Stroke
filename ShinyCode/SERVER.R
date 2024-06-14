@@ -12,15 +12,14 @@ shinyServer(function(input, output){
       
       ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) + 
         geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
-        + ylim(input, max)
+        #+ ylim(min(strokeDataSet[[input$yvar]],na.rm=T), max(strokeDataSet[[input$yvar]],na.rm=T))
     } else {
       # If one or both variables are not selected, display an empty plot
       plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot")
     }
     
   })
-<<<<<<< Updated upstream
-=======
+
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
       if (pred == "Gender") {
@@ -68,8 +67,5 @@ shinyServer(function(input, output){
     })
   })
   
-  
-  
->>>>>>> Stashed changes
   
 })
