@@ -26,13 +26,23 @@ shinyServer(function(input, output){
   })
   
   #Page 3 regression 
+  # Dynamically generate input fields for each selected predictor
   output$dynamic_inputs <- renderUI({
     lapply(input$predictors, function(predictor) {
-      numericInput(
-        inputId = paste0("input_", predictor),
-        label = paste("Enter value for", predictor, ":"),
-        value = 0
-      )
+      if (predictor == "Gender") {
+        selectInput(
+          inputId = paste0("input_", predictor),
+          label = paste("Select", predictor, ":"),
+          choices = c("male", "female")
+        )
+      }
+      else {
+        numericInput(
+          inputId = paste0("input_", predictor),
+          label = paste("Enter value for", predictor, ":"),
+          value = 0
+        )
+      }
     })
   })
   
