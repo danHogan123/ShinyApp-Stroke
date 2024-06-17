@@ -39,7 +39,7 @@ shinyUI(
         )
       )
     ),
-    tabPanel("Regression testing",
+    tabPanel("Stroke Prediction",
       h1("testing regression prediction for stroke"),
       sidebarLayout(
         sidebarPanel(
