@@ -21,7 +21,7 @@ shinyUI(
 
 
     tabPanel("Variable Analysis",
-      h1("hi"),
+      h1("Variable Analysis"),
       sidebarLayout(
         sidebarPanel(
           

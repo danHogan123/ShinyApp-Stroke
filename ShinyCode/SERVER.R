@@ -1,25 +1,25 @@
 library(shiny)
 library(readr)
 library(tidyverse)
+
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 shinyServer(function(input, output){
   
+  
   output$scatterplot <- renderPlot({
-    
-    # Check if both xvar and yvar are selected
+   
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
       
-      ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) + 
-        geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
-        + ylim(input, max)
+      return(ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) +
+               geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar))
+      #+ ylim(min(strokeDataSet[[input$yvar]],na.rm=T), max(strokeDataSet[[input$yvar]],na.rm=T))
     } else {
       # If one or both variables are not selected, display an empty plot
-      plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot")
+      return(plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot"))
     }
-    
   })
-
+    
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
       if (pred == "Gender") {
