@@ -88,7 +88,7 @@ shinyServer(function(input, output){
           choices = c("Never Smoked", "Smokes", "Formerly Smoked"),
           selected = "Never Smoked" 
         )}
-      else if (pred == "Height and Weight"){
+      else if (pred == "Height and Weight"){ #Does not work right"
         list(
           tagList(
             numericInput( # Subject to change yall
