@@ -1,6 +1,7 @@
 library(shiny)
 library(readr)
 library(tidyverse)
+library(scales)
 
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
@@ -11,8 +12,9 @@ shinyServer(function(input, output){
    
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
       
-      return(ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) +
-               geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar))
+      ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) +
+        geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
+      #+ scale_y_continuous(breaks = y_breaks)
       #+ ylim(min(strokeDataSet[[input$yvar]],na.rm=T), max(strokeDataSet[[input$yvar]],na.rm=T))
     } else {
       # If one or both variables are not selected, display an empty plot
