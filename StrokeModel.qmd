@@ -15,7 +15,7 @@ library(yardstick)
 library(ggplot2)
 
 # Load the dataset
-StrokeData <- read.csv("C:\\Users\\Wellington\\Downloads\\Stroke\\healthcare-dataset-stroke-data.csv")
+StrokeData <- read.csv("ShinyCode/healthcare-dataset-stroke-data.csv")
 
 # Convert necessary variables to factors and select relevant columns
 StrokeData <- StrokeData %>%
@@ -132,7 +132,7 @@ number_of_strokes <- nrow(stroke_cases)
 ```{r}
 #This chunk creates a correlation matrix of the interactions of every variable in the data set
 
-StrokeData <- read.csv("C:\\Users\\Wellington\\Downloads\\Stroke\\healthcare-dataset-stroke-data.csv") |>
+StrokeData <- read.csv("/healthcare-dataset-stroke-data.csv") |>
   select(-id)
 
 # Print the structure of the dataset to understand what transformations are needed

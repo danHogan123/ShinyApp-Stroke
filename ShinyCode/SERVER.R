@@ -1,25 +1,27 @@
 library(shiny)
 library(readr)
 library(tidyverse)
+library(scales)
+
 strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 shinyServer(function(input, output){
   
+  
   output$scatterplot <- renderPlot({
-    
-    # Check if both xvar and yvar are selected
+   
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
       
-      ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) + 
+      ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) +
         geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
-        + ylim(input, max)
+      #+ scale_y_continuous(breaks = y_breaks)
+      #+ ylim(min(strokeDataSet[[input$yvar]],na.rm=T), max(strokeDataSet[[input$yvar]],na.rm=T))
     } else {
       # If one or both variables are not selected, display an empty plot
-      plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot")
+      return(plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot"))
     }
-    
   })
-
+    
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
       if (pred == "Gender") {
@@ -45,47 +47,65 @@ shinyServer(function(input, output){
           selected = "Yes"
         )
       }
-      else if (pred == "Heart Disease"){
+      else if (pred == "HeartDisease"){
         selectInput(
           inputId = "input_HeartDisease",
           label = "Heart Disease",
           choices = c("Yes", "No"),
           selected = "Yes"
         )}
-      else if (pred == "Ever Married"){
+      else if (pred == "EverMarried"){
         selectInput(
           inputId = "input_EverMarried",
           label = "Ever Married",
           choices = c("Yes", "No"),
           selected = "Yes"
         )}
-      else if (pred == "Work Type"){
+      else if (pred == "WorkType"){
         selectInput(
           inputId = "input_WorkType",
           label = "Work Type",
           choices = c("Private", "Government", "Self-Employed", "Never Worked"),
           selected = "Private"
         )}
-      else if (pred == "Residence Type"){
+      else if (pred == "ResidenceType"){
         selectInput(
           inputId = "input_ResidenceType",
           label = "Residence Type",
           choices = c("Urban", "Rural"),
           selected = "Urban"
         )}
-      else if (pred == "Avg Glucose Level"){
+      else if (pred == "AvgGlucoseLevel"){
         numericInput( # Subject to change yall
           inputId = "input_AvgGlucoseLevel",
           label = "Average Glucose Level",
           min = 50, max = 300, value = 140
         )}
-      else if (pred == "Smoking Status"){
+      else if (pred == "SmokingStatus"){
         selectInput(
           inputId = "input_SmokingStatus",
           label = "Smoking Status",
           choices = c("Never Smoked", "Smokes", "Formerly Smoked"),
           selected = "Never Smoked" 
         )}
+      else if (pred == "Height and Weight"){ #Does not work right"
+        list(
+          tagList(
+            numericInput( # Subject to change yall
+              inputId = "input_height",
+              label = "Height in inches",
+              min = 50, max = 300, value = 140
+            ),
+          ),
+          tagList(
+            numericInput( # Subject to change yall
+              inputId = "input_weight",
+              label = "Weight in lbs",
+              min = 50, max = 300, value = 140
+            )
+          )
+        )
+    }
       else {
         numericInput(
           inputId = paste0("input_", pred),
@@ -94,7 +114,28 @@ shinyServer(function(input, output){
         )
       }
     })
-    do.call(tagList, predictor_inputs)
+    
+    # Split the list of UI elements into two equal parts
+    n <- length(predictor_inputs)
+    
+    if (n == 1) {
+      # If there is only one predictor, place it in a single column
+      fluidRow(
+        column(12, do.call(tagList, predictor_inputs))
+      )
+    } else {
+    
+    half <- ceiling(n / 2)
+    col1 <- predictor_inputs[1:half]
+    col2 <- predictor_inputs[(half + 1):n]
+    
+    # Arrange the elements in two columns
+    fluidRow(
+      column(6, do.call(tagList, col1)),
+      column(6, do.call(tagList, col2))
+    )
+    }
+    #do.call(tagList, predictor_inputs)
   })
   
   observeEvent(input$predict, {
