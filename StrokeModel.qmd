@@ -1,7 +1,6 @@
 ---
 title: "StrokeModell"
 author: "Wellington Gray"
-format:
 html:
 self-contained: true
 ---
@@ -99,24 +98,23 @@ ggplot(coefs, aes(x = estimate, y = reorder(term, estimate))) +
   theme_minimal()
 ```
 
-```{r}
-#This chunk doesnt even work right now but it attempts to create a confusion matrix in order to calculate the efficacy of our model in predicting stroke
+# ```{r}
+# #This chunk doesnt even work right now but it attempts to create a confusion matrix in order to calculate the efficacy of our model in predicting stroke
 
-# Generate predictions and calculate metrics
-predictions <- predict(logistic_fit, test_data, type = "prob")
-class_predictions <- predict(logistic_fit, test_data, type = "class")
+# # Generate predictions and calculate metrics
+# predictions <- predict(logistic_fit, test_data, type = "prob")
+# class_predictions <- predict(logistic_fit, test_data, type = "class")
+ 
+# # Bind predictions
+# results <- bind_cols(test_data, predictions, class_predictions %>% mutate(.pred_class = factor(.pred_class, levels = c("0", "1"))))
 
-# Bind predictions
-results <- bind_cols(test_data, predictions, class_predictions %>% mutate(.pred_class = factor(.pred_class, levels = c("0", "1"))))
+# # Calculate metrics
+# metrics <- metric_set(roc_auc, accuracy, sensitivity, specificity)
+# evaluation_scores <- metrics(data = results, truth = Stroke, .pred_class)
 
-# Calculate metrics
-metrics <- metric_set(roc_auc, accuracy, sensitivity, specificity)
-evaluation_scores <- metrics(data = results, truth = Stroke, .pred_class)
-
-# Output the evaluation scores
-evaluation_scores
-``
-```
+# # Output the evaluation scores
+# evaluation_scores
+# ```
 
 ```{r}
 #This chunk counts the amount of people that had a stroke in the dataset
@@ -132,15 +130,15 @@ number_of_strokes <- nrow(stroke_cases)
 ```{r}
 #This chunk creates a correlation matrix of the interactions of every variable in the data set
 
-StrokeData <- read.csv("/healthcare-dataset-stroke-data.csv") |>
+StrokeData1 <- read.csv("healthcare-dataset-stroke-data.csv") |>
   select(-id)
 
 # Print the structure of the dataset to understand what transformations are needed
-str(StrokeData)
+str(StrokeData1)
 
 # Convert all factor and character columns to numeric via one-hot encoding
 # Assuming character variables need to be transformed
-StrokeData_numeric <- StrokeData %>%
+StrokeData_numeric <- StrokeData1 %>%
   mutate(across(where(is.character), as.factor)) %>%  # Ensure all character columns are factors
   mutate(across(where(is.factor), as.numeric)) %>%   # Convert factors to numeric if ordinal; otherwise use dummy variables
   # For non-ordinal factors, create dummy variables
