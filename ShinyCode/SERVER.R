@@ -180,6 +180,20 @@ shinyServer(function(input, output){
     return(NULL)
   })
   
+  categorizeBMI <- function(bmi) {
+    if (is.na(bmi)) return(NA)
+    if (bmi < 18.5) return("Underweight")
+    if (bmi >= 18.5 & bmi < 24.9) return("Normal weight")
+    if (bmi >= 25 & bmi < 29.9) return("Overweight")
+    if (bmi >= 30) return("Obese")
+    if (bmi >= 35) return ("Severely obese")
+  }
+  
+  categorizedBMI <- reactive({
+    bmi <- calculatedBMI()
+    return(categorizeBMI(bmi))
+  })
+  
   
   regressionResult <- reactiveVal(NULL)
   
@@ -192,7 +206,7 @@ shinyServer(function(input, output){
       predictors <- c(predictors, "Age")
     }
     if (input$useBMI) {
-      predictors <- c(predictors, "BMI_Category")
+      predictors <- c(predictors,"BMI_Category")
     }
     
     if (length(predictors) == 0) {
@@ -201,17 +215,18 @@ shinyServer(function(input, output){
     }
     
     formula <- as.formula(paste("Stroke ~", paste(predictors, collapse = " + ")))
-    
+    print(formula)
     # Fit logistic regression model
     model <- glm(formula, data = StrokeData, family = binomial)
     
     # Create newdata dataframe based on selected inputs
     newdata <- data.frame(
       Age = if (input$useAge) input$ageInput else NA,
-      BMI = if (input$useBMI) calculatedBMI() else NA
+      BMI_Category = if (input$useBMI) categorizedBMI() else NA
     )
     
     # Make a prediction for the selected age and/or bmi
+    
     prediction <- predict(model, newdata = newdata, type = "response")
     
     # Store the model summary and prediction
