@@ -83,8 +83,30 @@ shinyUI(
     tabPanel("Regression testing",
       h1("testing regression prediction for stroke"),
       sidebarLayout(
-        sidebarPanel(),
-        mainPanel(verbatimTextOutput("prediction_result"))
+        sidebarPanel(
+          checkboxInput("useAge", "Include Age", value = TRUE),
+          conditionalPanel(
+            condition = "input.useAge == true",
+            sliderInput("ageInput", 
+                        "Select an Age:", 
+                        min = 1, 
+                        max = 100, 
+                        value = 50)
+          ),
+          checkboxInput("useBMI", "Include BMI", value = TRUE),
+          conditionalPanel(
+            condition = "input.useBMI == true",
+            numericInput("bmiInput", 
+                         "Enter BMI:", 
+                         value = 25, 
+                         min = 10, 
+                         max = 50, 
+                         step = 0.1)
+          ),
+          actionButton("runRegression", "Run Regression")
+          
+        ),
+        mainPanel(verbatimTextOutput("regressionResults"))
       )
     )
   )
