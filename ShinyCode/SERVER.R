@@ -7,7 +7,7 @@ strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 shinyServer(function(input, output){
   
-  
+  ## CODE FOR PAGE 2 SCATTERPLOT
   output$scatterplot <- renderPlot({
    
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
@@ -21,6 +21,10 @@ shinyServer(function(input, output){
       return(plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot"))
     }
   })
+  
+  
+  
+  
     
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
@@ -138,6 +142,7 @@ shinyServer(function(input, output){
     #do.call(tagList, predictor_inputs)
   })
   
+  
   observeEvent(input$predict, {
     req(input$predictors)
     
@@ -164,6 +169,59 @@ shinyServer(function(input, output){
       paste("Predicted probability of stroke:", round(prediction, 4))
     })
   })
+  
+  
+  regressionResult <- reactiveVal(NULL)
+  
+  
+  
+  observeEvent(input$runRegression, {
+    # Define the formula dynamically
+    predictors <- c()
+    if (input$useAge) {
+      predictors <- c(predictors, "Age")
+    }
+    if (input$useBMI) {
+      predictors <- c(predictors, "bmi")
+    }
+    
+    if (length(predictors) == 0) {
+      regressionResult("Please select at least one predictor.")
+      return()
+    }
+    
+    formula <- as.formula(paste("Stroke ~", paste(predictors, collapse = " + ")))
+    
+    # Fit logistic regression model
+    model <- glm(formula, data = strokeDataSet, family = binomial)
+    
+    # Create newdata dataframe based on selected inputs
+    newdata <- data.frame(
+      Age = if (input$useAge) input$ageInput else NA,
+      BMI = if (input$useBMI) input$bmiInput else NA
+    )
+    
+    # Make a prediction for the selected age and/or bmi
+    prediction <- predict(model, newdata = newdata, type = "response")
+    
+    # Store the model summary and prediction
+    regressionResult(list(model_summary = summary(model), prediction = prediction))
+  })
+  
+  output$regressionResults <- renderPrint({
+    result <- regressionResult()
+    if (is.null(result)) {
+      "Run the regression to see the results."
+    } else if (is.character(result)) {
+      result
+    } else {
+      cat("Model Summary:\n")
+      print(result$model_summary)
+      cat("\nPrediction for selected values:\n")
+      print(result$prediction)
+    }
+  })
+  
   
   
 
