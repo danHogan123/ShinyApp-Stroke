@@ -143,6 +143,7 @@ shinyServer(function(input, output){
   })
   
   
+  
   observeEvent(input$predict, {
     req(input$predictors)
     
@@ -171,7 +172,37 @@ shinyServer(function(input, output){
   })
   
   
-  
+  # StrokeRecipe <- recipe(Stroke ~ ., data = strokeDataSet) %>%
+  #   step_zv(all_predictors()) %>%
+  #   step_impute_mode(all_nominal_predictors()) %>%
+  #   step_impute_median(all_numeric_predictors()) %>%
+  #   step_corr(all_numeric_predictors(), threshold = 0.8) %>%
+  #   step_dummy(all_nominal_predictors(), -all_outcomes()) %>%
+  #   prep()
+  # print('hi')
+  # 
+  # # Split the data
+  # set.seed(123)
+  # data_split <- initial_split(strokeDataSet, prop = 0.75)
+  # train_data <- training(data_split)
+  # test_data <- testing(data_split)
+  # 
+  # 
+  # 
+  # 
+  # 
+  # # Apply the recipe
+  # train_data <- bake(StrokeRecipe, new_data = train_data)
+  # test_data <- bake(StrokeRecipe, new_data = test_data)
+  # 
+  # # Model specification using glmnet for regularization
+  # print('hi')
+  # levels(StrokeData$Stroke)
+  # StrokeData$Stroke <- factor(StrokeData$Stroke)
+  # logistic_spec <- logistic_reg(mode = "classification", penalty = 0) %>%
+  #  set_engine("glmnet")
+  # logistic_fit <- fit(logistic_spec, Stroke ~ ., data = train_data)
+  # print('hi')
   
   calculatedBMI <- reactive({
     if (input$useBMI) {
@@ -208,6 +239,9 @@ shinyServer(function(input, output){
     if (input$useBMI) {
       predictors <- c(predictors,"BMI_Category")
     }
+    if (input$useSex) {
+      predictors <- c(predictors,"Gender")
+    }
     
     if (length(predictors) == 0) {
       regressionResult("Please select at least one predictor.")
@@ -217,13 +251,38 @@ shinyServer(function(input, output){
     formula <- as.formula(paste("Stroke ~", paste(predictors, collapse = " + ")))
     print(formula)
     # Fit logistic regression model
+    
+    
+    
+    
+    
     model <- glm(formula, data = StrokeData, family = binomial)
+    
+    
+    
+    
+    
+    
+    
+    
     
     # Create newdata dataframe based on selected inputs
     newdata <- data.frame(
       Age = if (input$useAge) input$ageInput else NA,
-      BMI_Category = if (input$useBMI) categorizedBMI() else NA
+      BMI_Category = if (input$useBMI) categorizedBMI() else NA,
+      Gender = if (input$useSex) input$sexInput else NA
     )
+    
+    #newdata$BMI_Category <- factor(newdata$BMI_Category, levels = levels(strokeDataSet$BMI_Category))
+    
+    # Apply the recipe to newdata
+    #newdata_preprocessed <- bake(StrokeRecipe, new_data = newdata)
+    
+    # Make a prediction for the selected age and/or bmi
+    #prediction <- predict(logistic_fit, newdata = newdata_preprocessed, type = "prob")$.pred_1
+    
+    # Store the model summary and prediction
+    #regressionResult(list(model_summary = logistic_fit, prediction = prediction))
     
     # Make a prediction for the selected age and/or bmi
     

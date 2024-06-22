@@ -110,6 +110,24 @@ shinyUI(
                          max = 200, 
                          step = 0.1),
           ),
+          checkboxInput("useSex", "Include sex", value = TRUE),
+          conditionalPanel(
+            condition = "input.useSex == true",
+            # Additional UI elements to include when useSex checkbox is checked
+            radioButtons("sexInput", "Select sex:",
+                         choices = c("Male", "Female", "Other")),
+            # You can add more inputs here based on your requirements
+          ),
+          
+          
+          checkboxInput("useHyper", "Include Hypertension", value = TRUE),
+          conditionalPanel(
+            condition = "input.useHyper == true",
+            # Additional UI elements to include when useSex checkbox is checked
+            radioButtons("hyperInput", "Do you have hypertension?:",
+                         choices = c("yes", "no", "Other")),
+            # You can add more inputs here based on your requirements
+          ),
           actionButton("runRegression", "Run Regression")
           
         ),
