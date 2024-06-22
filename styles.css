@@ -1,0 +1,17 @@
+/* styles.css */
+
+/* Increase font size of code */
+pre code {
+    font-size: 18px; /* Adjust the size as needed */
+}
+
+/* Make code bold */
+pre code {
+    font-weight: bold;
+}
+
+/* Change background color of code block */
+pre {
+    background-color: #f0f0f0; /* Light gray background */
+    padding: 10px; /* Add padding for better readability */
+}
