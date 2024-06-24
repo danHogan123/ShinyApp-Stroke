@@ -51,10 +51,10 @@ shinyUI(
                  checkboxInput("useBMI", "Include BMI", value = FALSE),
                  conditionalPanel(
                    condition = "input.useBMI == true",
-                   numericInput("heightInput", "Enter Height:", value = 25, min = 10, max = 50, step = 0.1),
-                   numericInput("weightInput", "Enter Weight:", value = 70, min = 30, max = 200, step = 0.1)
+                   numericInput("heightInput", "Enter Height(Inches):", value = 25, min = 10, max = 50, step = 0.1),
+                   numericInput("weightInput", "Enter Weight(Pounds):", value = 70, min = 30, max = 200, step = 0.1)
                  ),
-                 checkboxInput("useSex", "Include sex", value = FALSE),
+                 checkboxInput("useSex", "Include Sex", value = FALSE),
                  conditionalPanel(
                    condition = "input.useSex == true",
                    radioButtons("sexInput", "Select sex:", choices = c("Male", "Female", "Other"))
@@ -62,19 +62,19 @@ shinyUI(
                  checkboxInput("useHyper", "Include Hypertension", value = FALSE),
                  conditionalPanel(
                    condition = "input.useHyper == true",
-                   radioButtons("hyperInput", "Do you have hypertension?:", choices = c("yes" = "1", "no" = "0"))
+                   radioButtons("hyperInput", "Do you have hypertension?:", choices = c("Yes" = "1", "No" = "0"))
                  ),
                  checkboxInput("useHeart", "Include Heart Disease", value = FALSE),
                  conditionalPanel(
                    condition = "input.useHeart == true",
-                   radioButtons("heartInput", "Do you have heart Disease?:", choices = c("yes" = "1", "no" = "0"))
+                   radioButtons("heartInput", "Do you have heart Disease?:", choices = c("Yes" = "1", "No" = "0"))
                  ),
                  checkboxInput("useMar", "Include Marriage", value = FALSE),
                  conditionalPanel(
                    condition = "input.useMar == true",
                    radioButtons("marInput", "Were you ever married?:", choices = c("Yes", "No"))
                  ),
-                 checkboxInput("useWork", "Include work type", value = FALSE),
+                 checkboxInput("useWork", "Include Work Type", value = FALSE),
                  conditionalPanel(
                    condition = "input.useWork == true",
                    radioButtons("workInput", "What is your work type?:", choices = c("Govt_job", "Self-employed", "Private", "Never_worked"))
@@ -87,9 +87,9 @@ shinyUI(
                  checkboxInput("useSmoke", "Include Smoking history", value = FALSE),
                  conditionalPanel(
                    condition = "input.useSmoke == true",
-                   radioButtons("smokeInput", "What is your smoking history?:", choices = c("formerly smoked", "never smoked", "smokes", "unknown"))
+                   radioButtons("smokeInput", "What is your smoking history?:", choices = c("Formerly smoked", "Never smoked", "Smokes", "Unknown"))
                  ),
-                 checkboxInput("useGluc", "Include Glucose", value = FALSE),
+                 checkboxInput("useGluc", "Include Glucose Level", value = FALSE),
                  conditionalPanel(
                    condition = "input.useGluc == true",
                    radioButtons("glucInput", "What is your glucose level?:", choices = c("Very High", "Healthy", "High", "Low", "Very Low"))

@@ -13,7 +13,7 @@ server <- function(input, output) {
   
   calculatedBMI <- reactive({
     if (input$useBMI) {
-      return(input$weightInput / (input$heightInput ^ 2))
+      return(((703*input$weightInput) / (input$heightInput ^ 2)))
     }
     return(NULL)
   })
