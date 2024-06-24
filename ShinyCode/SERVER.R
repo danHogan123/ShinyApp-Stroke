@@ -37,6 +37,8 @@ server <- function(input, output) {
   # DEFINED REACTIVE VALUE THAT AUTO UPDATES WHENEVER IT IS CHANGED IN OTHER LINES
   regressionResult <- reactiveVal(NULL)
   
+  savedResults <- reactiveVal(list())
+  
   # UPDATES THE PREDICTOR VECTOR WHENEVER THE REGRESSION MODEL IS RUN
   observeEvent(input$runRegression, {
     predictors <- c()
@@ -98,9 +100,11 @@ server <- function(input, output) {
     
     # THE STROKE PREDICTION FOR THE USER
     StrokePrediction <- predict(FinalModel, newdata = newdata, type = "response")
-    
+    result <- list(model_summary = summary(FinalModel), prediction = StrokePrediction, predictors = predictors)
+    regressionResult(result)
     # Store the model summary and prediction
     regressionResult(list(model_summary = summary(FinalModel), prediction = StrokePrediction))
+    savedResults(c(savedResults(), list(result)))
   })
   
   # Output functions (these should be within the server function)
@@ -127,7 +131,17 @@ server <- function(input, output) {
     print(p)
   })
   
-  # Display the regression results
+  # # Display the regression results
+  # output$regressionResults <- renderPrint({
+  #   result <- regressionResult()
+  #   if (is.null(result)) {
+  #     "Run the regression to see the results."
+  #   } else if (is.character(result)) {
+  #     result
+  #   } else {
+  #     cat("Stroke prediction number:", round(result$prediction, 2))
+  #   }
+  # })
   output$regressionResults <- renderPrint({
     result <- regressionResult()
     if (is.null(result)) {
@@ -135,9 +149,31 @@ server <- function(input, output) {
     } else if (is.character(result)) {
       result
     } else {
-      cat("Stroke prediction number:", round(result$prediction, 2))
+      cat("Stroke prediction number:", round(result$prediction, 2), "\n")
+      cat("Predictors used:", paste(result$predictors, collapse = ", "), "\n")
     }
   })
   
+  output$savedResultsTable <- renderTable({
+    results <- savedResults()
+    if (length(results) == 0) {
+      return(NULL)
+    }
+    
+    data <- do.call(rbind, lapply(results, function(result) {
+      data.frame(
+        Prediction = round(result$prediction, 2),
+        Predictors = paste(result$predictors, collapse = ", ")
+      )
+    }))
+    return(data)
+  })
+  
+  observeEvent(input$saveResult, {
+    result <- regressionResult()
+    if (!is.null(result) && !is.character(result)) {
+      savedResults(c(savedResults(), list(result)))
+    }
+  })
 }
 

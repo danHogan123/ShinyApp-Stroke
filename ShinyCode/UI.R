@@ -40,98 +40,69 @@ shinyUI(
     ),
     
     tabPanel("Regression",
-      h1("Test your probability of getting a stroke"),
-        sidebarLayout(
-          sidebarPanel(
-            
-            checkboxInput("useAge", "Include Age", value = FALSE),
-            conditionalPanel(
-              condition = "input.useAge == true",
-              sliderInput("ageInput", 
-                "Select an Age:", 
-                  min = 1, 
-                  max = 100, 
-                  value = 50)
-            ),
-          
-            checkboxInput("useBMI", "Include BMI", value = FALSE),
-            conditionalPanel(
-              condition = "input.useBMI == true",
-              
-              numericInput("heightInput", 
-                  "Enter Height:", 
-                   value = 25, 
-                   min = 10, 
-                   max = 50,
-                   step = 0.1),
-              
-              numericInput("weightInput", 
-                  "Enter Weight:", 
-                   value = 70, 
-                   min = 30, 
-                   max = 200, 
-                   step = 0.1),
-            ),
-            
-            
-            checkboxInput("useSex", "Include sex", value = FALSE),
-            conditionalPanel(
-              condition = "input.useSex == true",
-              radioButtons("sexInput", "Select sex:",
-                choices = c("Male", "Female", "Other")),
-            ),
-          
-          
-            checkboxInput("useHyper", "Include Hypertension", value = FALSE),
-            conditionalPanel(
-              condition = "input.useHyper == true",
-              radioButtons("hyperInput", "Do you have hypertension?:",
-                choices = c("yes" = "1", "no" = "0" )),
-            ),
-          
-            checkboxInput("useHeart", "Include HeartDiease", value = FALSE),
-            conditionalPanel(
-              condition = "input.useHeart == true",
-              radioButtons("heartInput", "Do you have heart Diease?:",
-                choices = c("yes" = "1" , "no" = "0" )),
-            ),
-            checkboxInput("useMar", "Include Marriage", value = FALSE),
-            conditionalPanel(
-              condition = "input.useMar == true",
-              radioButtons("marInput", "Were you ever married?:",
-                choices = c("Yes" , "No")),
-            ),
-          
-            checkboxInput("useWork", "Include work type", value = FALSE),
-            conditionalPanel(
-              condition = "input.useWork == true",
-              radioButtons("workInput", "What is your work type?:",
-                choices = c( "Govt_job", "Self-employed",
-                                     "Private", "Never_worked")),
-            ),
-            checkboxInput("useRes", "Include Residence", value = FALSE),
-            conditionalPanel(
-              condition = "input.useRes == true",
-              radioButtons("resInput", "Were do you live?:",
-                choices = c("Rural" , "Urban")),
-            ),
-            checkboxInput("useSmoke", "Include Smoking history", value = FALSE),
-            conditionalPanel(
-              condition = "input.useSmoke == true",
-              radioButtons("smokeInput", "What is your smoking history?:",
-                choices = c("formerly smoked" , "never smoked", "smokes", "unknown")),
-            ),
-            checkboxInput("useGluc", "Include Glucose", value = FALSE),
-            conditionalPanel(
-              condition = "input.useGluc == true",
-              radioButtons("glucInput", "What is your glucose level?:",
-                choices = c("Very High" , "Healthy", "High", "Low", "Very Low")),
-            ),
-            actionButton("runRegression", "Run Regression")
-          
-        ),
-        mainPanel(verbatimTextOutput("regressionResults"))
-      )
+             h1("Test your probability of getting a stroke"),
+             sidebarLayout(
+               sidebarPanel(
+                 checkboxInput("useAge", "Include Age", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useAge == true",
+                   sliderInput("ageInput", "Select an Age:", min = 1, max = 100, value = 50)
+                 ),
+                 checkboxInput("useBMI", "Include BMI", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useBMI == true",
+                   numericInput("heightInput", "Enter Height:", value = 25, min = 10, max = 50, step = 0.1),
+                   numericInput("weightInput", "Enter Weight:", value = 70, min = 30, max = 200, step = 0.1)
+                 ),
+                 checkboxInput("useSex", "Include sex", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useSex == true",
+                   radioButtons("sexInput", "Select sex:", choices = c("Male", "Female", "Other"))
+                 ),
+                 checkboxInput("useHyper", "Include Hypertension", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useHyper == true",
+                   radioButtons("hyperInput", "Do you have hypertension?:", choices = c("yes" = "1", "no" = "0"))
+                 ),
+                 checkboxInput("useHeart", "Include Heart Disease", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useHeart == true",
+                   radioButtons("heartInput", "Do you have heart Disease?:", choices = c("yes" = "1", "no" = "0"))
+                 ),
+                 checkboxInput("useMar", "Include Marriage", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useMar == true",
+                   radioButtons("marInput", "Were you ever married?:", choices = c("Yes", "No"))
+                 ),
+                 checkboxInput("useWork", "Include work type", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useWork == true",
+                   radioButtons("workInput", "What is your work type?:", choices = c("Govt_job", "Self-employed", "Private", "Never_worked"))
+                 ),
+                 checkboxInput("useRes", "Include Residence", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useRes == true",
+                   radioButtons("resInput", "Where do you live?:", choices = c("Rural", "Urban"))
+                 ),
+                 checkboxInput("useSmoke", "Include Smoking history", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useSmoke == true",
+                   radioButtons("smokeInput", "What is your smoking history?:", choices = c("formerly smoked", "never smoked", "smokes", "unknown"))
+                 ),
+                 checkboxInput("useGluc", "Include Glucose", value = FALSE),
+                 conditionalPanel(
+                   condition = "input.useGluc == true",
+                   radioButtons("glucInput", "What is your glucose level?:", choices = c("Very High", "Healthy", "High", "Low", "Very Low"))
+                 ),
+                 actionButton("runRegression", "Run Regression"),
+                 actionButton("saveResult", "Save Result")
+               ),
+               mainPanel(
+                 verbatimTextOutput("regressionResults"),
+                 h3("Saved Results"),
+                 tableOutput("savedResultsTable")
+               )
+             )
     )
   )
 )
