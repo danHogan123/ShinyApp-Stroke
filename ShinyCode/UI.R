@@ -84,7 +84,8 @@ shinyUI(
       tabPanel("Analysis",
                sidebarLayout(
                  sidebarPanel(
-                   h3("Model Analysis")
+                   h3("Model Analysis"),
+                   textOutput("prediction")
                  ),
                  mainPanel(
                    h3("Coefficient Analysis"),
