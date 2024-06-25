@@ -41,6 +41,15 @@ shinyUI(
     
     tabPanel("Regression",
              h1("Test your probability of getting a stroke"),
+             fluidRow(
+               column(12, 
+                      div(style = "text-align: center; margin-bottom: 20px;",
+                          actionButton("runRegression", "Run Regression"),
+                          actionButton("saveResult", "Save Result"),
+                          actionButton("clearTable", "Clear Table")
+                      )
+               )
+             ),
              sidebarLayout(
                sidebarPanel(
                  checkboxInput("useAge", "Include Age", value = FALSE),
@@ -94,8 +103,9 @@ shinyUI(
                    condition = "input.useGluc == true",
                    radioButtons("glucInput", "What is your glucose level?:", choices = c("Very High", "Healthy", "High", "Low", "Very Low"))
                  ),
-                 actionButton("runRegression", "Run Regression"),
-                 actionButton("saveResult", "Save Result")
+                 #actionButton("runRegression", "Run Regression"),
+                 #actionButton("saveResult", "Save Result"),
+                 #actionButton("clearTable", "Clear Table")
                ),
                mainPanel(
                  verbatimTextOutput("regressionResults"),

@@ -175,5 +175,8 @@ server <- function(input, output) {
       savedResults(c(savedResults(), list(result)))
     }
   })
+  observeEvent(input$clearTable, {
+    savedResults(list())
+  })
 }
 
