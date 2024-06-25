@@ -8,6 +8,33 @@ library(ggplot2)
 library(plotly)
 StrokeData
 
+
+# Adjust the recipe for handling missing values
+StrokeRecipe <- recipe(Stroke ~ ., data = StrokeData) %>%
+  step_zv(all_predictors()) %>%
+  step_impute_mode(all_nominal_predictors()) %>%
+  step_impute_median(all_numeric_predictors()) %>%
+  step_corr(all_numeric_predictors(), threshold = 0.8) %>%
+  step_dummy(all_nominal_predictors(), -all_outcomes()) %>%
+  prep()
+
+# Split the data
+set.seed(123)
+data_split <- initial_split(StrokeData, prop = 0.75)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+
+# Apply the recipe
+train_data <- bake(StrokeRecipe, new_data = train_data)
+test_data <- bake(StrokeRecipe, new_data = test_data)
+
+# Model specification using glmnet for regularization
+logistic_spec <- logistic_reg(mode = "classification", penalty = 0) %>%
+  set_engine("glmnet")
+logistic_fit <- fit(logistic_spec, Stroke ~ ., data = train_data)
+
+
+
 server <- function(input, output) {
   
   # Function to categorize BMI
@@ -24,7 +51,7 @@ server <- function(input, output) {
     if (bmi >= 18.5 & bmi < 24.9) return("Normal weight")
     if (bmi >= 25 & bmi < 29.9) return("Overweight")
     if (bmi >= 30 & bmi < 35) return("Obese")
-    if (bmi >= 35) return("Severely obese")
+    if (bmi >= 35) return("Severely Obese")
   }
   
   categorizedBMI <- reactive({
@@ -117,13 +144,9 @@ server <- function(input, output) {
   # Rendering visualizations
   output$plot <- renderPlot({
     p <- ggplot(StrokeData, aes_string(x = input$plotVariable))
-    if (input$plotType == "Histogram") {
-      p <- p + geom_histogram()
-    } else if (input$plotType == "Bar Chart") {
+    if (input$plotType == "BarChart") {
       p <- p + geom_bar()
-    } else if (input$plotType == "Boxplot") {
-      p <- p + geom_boxplot()
-    }
+    } 
     print(p)
   })
   
@@ -135,14 +158,12 @@ server <- function(input, output) {
     } else if (is.character(result)) {
       result
     } else {
-      cat("Stroke prediction number:", round(result$prediction, 2), "\n")
-      cat("Predictors used:", paste(result$predictors, collapse = ", "), "\n")
-      print(result$model_summary)
+      paste("Stroke probability:", round(result$prediction, 2))
     }
   })
   
   # Rendering saved results table
-  output$savedResultsTable <- renderTable({
+  output$savedResultsTable <- renderDataTable({
     results <- savedResults()
     if (length(results) == 0) {
       return(NULL)
@@ -166,9 +187,27 @@ server <- function(input, output) {
   observeEvent(input$clearTable, {
     savedResults(list())
   })
+  
+  output$coefficientsPlot <- renderPlot({
+    coefs <- tidy(logistic_fit) %>%
+      filter(term != "(Intercept)")
+    
+    ggplot(coefs, aes(x = estimate, y = reorder(term, estimate))) +
+      geom_point() +
+      geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+      labs(title = "Effect Sizes of Predictors in Logistic Regression Model",
+           x = "Coefficient Estimate",
+           y = "Predictors") +
+      theme_minimal()
+    
+  })
+  
+  
+  
+ 
 }
 
-# Running the Shiny app
+
 
 
 

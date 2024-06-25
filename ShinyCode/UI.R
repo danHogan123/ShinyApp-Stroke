@@ -25,18 +25,49 @@ shinyUI(
                )
              )
     ),
+    # tabPanel("Visualization",
+    #          sidebarLayout(
+    #            sidebarPanel(
+    #              # Option 1: Histogram
+    #              checkboxGroupInput("visualizationOptions", "Select Visualization:",
+    #                                 choices = c("Histogram", "Model Coefficients")),
+    #              conditionalPanel(
+    #                condition = "input.visualizationOptions.includes('Histogram')",
+    #                selectInput("histogramVariable", "Select Variable for Histogram:",
+    #                            choices = setdiff(names(StrokeData), "Id"))
+    #              ),
+    #              # Option 2: Model Coefficients
+    #              conditionalPanel(
+    #                condition = "input.visualizationOptions.includes('Model Coefficients')",
+    #                checkboxInput("showCoefficients", "Show Model Coefficients", value = FALSE)
+    #              )
+    #            ),
+    #            mainPanel(
+    #              plotOutput("plot"),
+    #              plotOutput("coefficientsPlot")
+    #            )
+    #          )
+    # ),
     
     tabPanel("Visualization",
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("plotVariable", "Select Variable:", choices = names(StrokeData)),
-                 selectInput("plotType", "Select Plot Type:", choices = c("Histogram", "Bar Chart", "Boxplot"))
+              sidebarLayout(
+                sidebarPanel(
+                  checkboxInput("showBarChart", "Show Bar Chart", value = FALSE),
+                  conditionalPanel(
+                    condition = "input.showBarChart == true",
+                    selectInput("barChartVariable", "Select Variable for Bar Chart:", choices = names(StrokeData))
+                  ),
+                  checkboxInput("showCoefficients", "Show Model Coefficients", value = FALSE)
+                ),
+                mainPanel(
+                  plotOutput("plot"),
+                  conditionalPanel(
+                    condition = "input.showCoefficients == true",
+                    plotOutput("coefficientsPlot")
+                 )
                ),
-               mainPanel(
-                 plotOutput("plot")
-               )
-             )
-    ),
+              )
+     ),
     
     tabPanel("Regression",
              h1("Test your probability of getting a stroke"),
@@ -98,7 +129,8 @@ shinyUI(
                  actionButton("runRegression", "Run Regression"),
                  actionButton("saveResult", "Save Result"),
                  actionButton("clearTable", "Clear Results"),
-                 verbatimTextOutput("regressionResults")
+                 verbatimTextOutput("regressionResults"),
+                 dataTableOutput("savedResultsTable")
                )
              )
     )
