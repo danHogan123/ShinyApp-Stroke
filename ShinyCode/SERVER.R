@@ -2,6 +2,8 @@ library(shiny)
 library(readr)
 library(tidyverse)
 library(scales)
+library(DT)
+library(corrplot)
 
 
 # Load necessary libraries
@@ -108,8 +110,25 @@ augment(model1, StrokeData) |>
 #This is the end of what I copy and pasted
 # Load the stroke model
 #model1 <- readRDS("StrokeModel.R")
+data <- read.csv("healthcare-dataset-stroke-data.csv")
+data <- data %>% mutate(BMI = as.numeric(BMI)) %>%
+  filter(!is.na(BMI)) %>%
+  mutate(Hypertension = case_when(
+    Hypertension == 1 ~ "Yes",
+    Hypertension == 0 ~ "No",
+    .default = NA_character_ #Handle cases where it might NA
+  )) %>%
+  mutate(HeartDisease = case_when(
+    HeartDisease == 1 ~ "Yes",
+    HeartDisease == 0 ~ "No",
+    .default = NA_character_ #Handle cases where it might NA
+  )) %>%
+  mutate(Stroke = case_when(
+    Stroke == 1 ~ "Yes",
+    Stroke == 0 ~ "No",
+    .default = NA_character_ #Handle cases where it might NA
+  ))
 
-strokeDataSet <- read_csv("healthcare-dataset-stroke-data.csv")
 
 shinyServer(function(input, output){
   
@@ -118,182 +137,244 @@ shinyServer(function(input, output){
     
     if (input$xvar != "Select X Variable" && input$yvar != "Select Y Variable") {
       
-      ggplot(strokeDataSet, aes(strokeDataSet[[input$xvar]], strokeDataSet[[input$yvar]])) +
-        geom_point(aes(color = strokeDataSet[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
-      #+ scale_y_continuous(breaks = y_breaks)
-      #+ ylim(min(strokeDataSet[[input$yvar]],na.rm=T), max(strokeDataSet[[input$yvar]],na.rm=T))
+      # ggplot(data, aes(data[[input$xvar]], data[[input$yvar]])) +
+      #   geom_point(aes(color = data[[input$catvar]])) + labs(x = input$xvar, y = input$yvar)
+      # + scale_y_continuous(breaks = y_breaks)
+      # + ylim(min(data[[input$yvar]],na.rm=T), max(data[[input$yvar]],na.rm=T))
+      ggplot(data, aes_string(x = input$xvar, y = input$yvar)) +
+        geom_point(aes(color = data[[input$catvar]])) +
+        labs(x = input$xvar, y = input$yvar) +
+        scale_color_discrete(name = input$catvar) +
+        scale_y_continuous(breaks = seq(min(data[[input$yvar]], na.rm = TRUE), max(data[[input$yvar]], na.rm = TRUE), by = 10))
+      
     } else {
       # If one or both variables are not selected, display an empty plot
       return(plot(1, type = "n", xlab = "", ylab = "", main = "Select variables to plot"))
     }
   })
-  
+
   output$dynamic_inputs <- renderUI({
     predictor_inputs <- lapply(input$predictors, function(pred) {
-      if (pred == "Gender") {
-        selectInput(
-          inputId = "Gender",
-          label = "Gender:",
-          choices = c("Male", "Female"),
-          selected = "Male"
-        )
-      }
-      else if (pred == "Age"){
-        sliderInput(
-          inputId = "Age",
-          label = "Age",
-          18, 90, 30
-        )
-      }
-      else if (pred == "Hypertension"){
-        selectInput(
-          inputId = "Hypertension",
-          label = "Hypertension",
-          choices = c("Yes", "No"),
-          selected = "Yes"
-        )
-      }
-      else if (pred == "HeartDisease"){
-        selectInput(
-          inputId = "HeartDisease",
-          label = "Heart Disease",
-          choices = c("Yes", "No"),
-          selected = "Yes"
-        )}
-      else if (pred == "EverMarried"){
-        selectInput(
-          inputId = "EverMarried",
-          label = "Ever Married",
-          choices = c("Yes", "No"),
-          selected = "Yes"
-        )}
-      else if (pred == "WorkType"){
-        selectInput(
-          inputId = "WorkType",
-          label = "Work Type",
-          choices = c("Private", "Government", "Self-Employed", "Never Worked"),
-          selected = "Private"
-        )}
-      else if (pred == "ResidenceType"){
-        selectInput(
-          inputId = "ResidenceType",
-          label = "Residence Type",
-          choices = c("Urban", "Rural"),
-          selected = "Urban"
-        )}
-      else if (pred == "AvgGlucoseLevel"){
-        numericInput( # Subject to change yall
-          inputId = "AvgGlucoseLevel",
-          label = "Average Glucose Level",
-          min = 50, max = 300, value = 140
-        )}
-      else if (pred == "SmokingStatus"){
-        selectInput(
-          inputId = "SmokingStatus",
-          label = "Smoking Status",
-          choices = c("Never smoked", "Smokes", "Formerly smoked", "Unknown"),
-          selected = "Never Smoked" 
-        )}
-      else if (pred == "Height & Weight"){
-        list(
-          tagList(
-            numericInput(
-              inputId = "Height",
-              label = "Height in inches",
-              min = 50, max = 300, value = 140
-            ),
-          ),
-          tagList(
-            numericInput(
-              inputId = "Weight",
-              label = "Weight in lbs",
-              min = 50, max = 300, value = 140
-            )
-          )
-        )
-      }
-      else {
-        numericInput(
-          inputId = paste0(pred),
-          label = pred,
-          value = 0
-        )
-      }
-    })
-    
-    # Split the list of UI elements into two equal parts
-    n <- length(predictor_inputs)
-    
-    if (n == 1) {
-      # If there is only one predictor, place it in a single column
-      fluidRow(
-        column(12, do.call(tagList, predictor_inputs))
-      )
-    } else {
-      
-      half <- ceiling(n / 2)
-      col1 <- predictor_inputs[1:half]
-      col2 <- predictor_inputs[(half + 1):n]
-      
-      # Arrange the elements in two columns
-      fluidRow(
-        column(6, do.call(tagList, col1)),
-        column(6, do.call(tagList, col2))
+    if (pred == "Gender") {
+      selectInput(
+        inputId = "Gender",
+        label = "Gender:",
+        choices = c("Male", "Female"),
+        selected = "Male"
       )
     }
+    else if (pred == "Age"){
+      sliderInput(
+        inputId = "Age",
+        label = "Age",
+        18, 90, 30
+      )
+    }
+    else if (pred == "Hypertension"){
+      selectInput(
+        inputId = "Hypertension",
+        label = "Hypertension",
+        choices = c("Yes", "No"),
+        selected = "Yes"
+      )
+    }
+    else if (pred == "HeartDisease"){
+      selectInput(
+        inputId = "HeartDisease",
+        label = "Heart Disease",
+        choices = c("Yes", "No"),
+        selected = "Yes"
+      )}
+    else if (pred == "EverMarried"){
+      selectInput(
+        inputId = "EverMarried",
+        label = "Ever Married",
+        choices = c("Yes", "No"),
+        selected = "Yes"
+      )}
+    else if (pred == "WorkType"){
+      selectInput(
+        inputId = "WorkType",
+        label = "Work Type",
+        choices = c("Private", "Government", "Self-Employed", "Never Worked"),
+        selected = "Private"
+      )}
+    else if (pred == "ResidenceType"){
+      selectInput(
+        inputId = "ResidenceType",
+        label = "Residence Type",
+        choices = c("Urban", "Rural"),
+        selected = "Urban"
+      )}
+    else if (pred == "AvgGlucoseLevel"){
+      numericInput(
+        inputId = "AvgGlucoseLevel",
+        label = "Average Glucose Level",
+        min = 50, max = 300, value = 140
+      )}
+    else if (pred == "SmokingStatus"){
+      selectInput(
+        inputId = "SmokingStatus",
+        label = "Smoking Status",
+        choices = c("Never smoked", "Smokes", "Formerly smoked", "Unknown"),
+        selected = "Never Smoked"
+      )}
+    else if (pred == "Height & Weight"){
+      list(
+        tagList(
+          numericInput(
+            inputId = "Height",
+            label = "Height in inches",
+            min = 0, max = 120, value = 66
+          ),
+        ),
+        tagList(
+          numericInput(
+            inputId = "Weight",
+            label = "Weight in lbs",
+            min = 50, max = 300, value = 140
+          )
+        )
+      )
+    }
+    else {
+      numericInput(
+        inputId = paste0(pred),
+        label = pred,
+        value = 0
+      )
+    }
+    })
+    
+  #Split the list of UI elements into two equal parts
+  n <- length(predictor_inputs)
+
+  if (n == 1) {
+    # If there is only one predictor, place it in a single column
+    fluidRow(
+      column(12, do.call(tagList, predictor_inputs))
+    )
+  } else {
+
+    half <- ceiling(n / 2)
+    col1 <- predictor_inputs[1:half]
+    col2 <- predictor_inputs[(half + 1):n]
+
+    # Arrange the elements in two columns
+    fluidRow(
+      column(6, do.call(tagList, col1)),
+      column(6, do.call(tagList, col2))
+    )
+  }
+  })
+  ########################################################Boxplots
+  output$ageboxplot <- renderPlot({
+    data %>% 
+      ggplot(aes(x=Age)) +
+      geom_boxplot()
+    })
+  output$bmiboxplot <- renderPlot({
+    data %>% 
+      ggplot(aes(x=BMI)) +
+      geom_boxplot()
+  })
+  output$glucoseboxplot <- renderPlot({
+    data %>% 
+      ggplot(aes(x=AvgGlucoseLevel)) +
+      geom_boxplot()
+  })
+  #######################################################Histograms
+  output$agehistogram <- renderPlot({
+    data %>% 
+      ggplot(aes(x=Age)) +
+      geom_histogram()
+  })
+  output$bmihistogram <- renderPlot({
+    data %>% 
+      ggplot(aes(x=BMI)) +
+      geom_histogram()
+  })
+  output$glucosehistogram <- renderPlot({
+    data %>% 
+      ggplot(aes(x=AvgGlucoseLevel)) +
+      geom_histogram()
+  })
+  ################################################Frequency Bar Graphs
+  output$genderfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = Gender)) +
+      geom_bar() +
+      labs(title = "Gender Frequency", x = "Category", y = "Count")
+  })
+  output$hyperfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = Hypertension)) +
+      geom_bar() +
+      labs(title = "Hypertension Frequency", x = "Category", y = "Count")
+  })
+  output$heartfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = HeartDisease)) +
+      geom_bar() +
+      labs(title = "Heart Disease Frequency", x = "Category", y = "Count")
+  })
+  output$everfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = EverMarried)) +
+      geom_bar() +
+      labs(title = "Ever Married Frequency", x = "Category", y = "Count")
+  })
+  output$workfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = WorkType)) +
+      geom_bar() +
+      labs(title = "Work Type Frequency", x = "Category", y = "Count")
+  })
+  output$resfreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = ResidenceType)) +
+      geom_bar() +
+      labs(title = "Residence Type Frequency", x = "Category", y = "Count")
+  })
+  output$smokefreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = SmokingStatus)) +
+      geom_bar() +
+      labs(title = "Smoking Status Frequency", x = "Category", y = "Count")
+  })
+  output$strokefreq <- renderPlot({
+    data %>% 
+      ggplot(aes(x = SmokingStatus)) +
+      geom_bar() +
+      labs(title = "Stroke Frequency", x = "Category", y = "Count")
   })
   
-  # observeEvent(input$predict, {
-  #   #req(input$predictors)
-  # 
-  #   # Prepare the data for logistic regression
-  #   # formula <- as.formula(paste("Stroke ~", paste(predictors, collapse = " + ")))
-  #   # model <- glm(formula, data = strokeDataSet, family = binomial)
-  #   
-  # 
-  #   # Gather input values for prediction
-  #   new_data <- data.frame(matrix(ncol = length(input$predictors), nrow = 1))
-  #   colnames(new_data) <- input$predictors
-  #   for (pred in input$predictors) {
-  #     new_data[[pred]] <- input[[paste0(pred)]]
-  #   }
-  # 
-  #   # Add Gender to the new_data for prediction
-  #   #new_data$Gender <- input$input_Gender
-  # 
-  #   # Predict stroke probability
-  #   prediction <- predict(model1, new_data, type = "prob")
-  #   #prediction <- predict(model, newdata = new_data, type = "response")
-  # 
-  #   # Display the prediction result
-  #   output$prediction_result <- renderText({
-  #     paste("Predicted probability of stroke:", round(prediction, 4))
-  #   })
-  # })
-  
-  
-  
-  
-  
-  
-  
-  
 
 
 
+  result <- reactiveVal(NULL)
+  savedResults <- reactiveVal(list())
 
-  observeEvent(input$predict, {
+
+
+  observeEvent(input$runRegression, {
+
+    # if (length(input$predictors) == 0) {
+    #   regressionResult("Please select at least one predictor.")
+    #   return()
+    # }
+
     new_data <- data.frame(
-      Age = if ("Age" %in% input$predictors) input$Age else "0",
-      Gender = if ("Gender" %in% input$predictors) input$Gender else "Female",
-      Hypertension = if ("Hypertension" %in% input$predictors) input$Hypertension else "Yes",
-      HeartDisease = if ("HeartDisease" %in% input$predictors) input$HeartDisease else "Yes",
-      AvgGlucoseLevel = if ("AvgGlucoseLevel" %in% input$predictors) input$AvgGlucoseLevel else NA,
-      BMI = if ("Height & Weight" %in% input$predictors) (input$Weight / ((input$Height / 100) ^ 2)) else NA,
-      EverMarried = if ("EverMarried" %in% input$predictors) input$EverMarried else NA,
-      WorkType = if ("WorkType" %in% input$predictors) input$WorkType else NA,
-      ResidenceType = if ("ResidenceType" %in% input$predictors) input$ResidenceType else NA,
-      SmokingStatus = if ("SmokingStatus" %in% input$predictors) input$SmokingStatus else NA
+      Age = if ("Age" %in% input$predictors) input$Age else 0,
+      Gender = if ("Gender" %in% input$predictors) input$Gender else "",
+      Hypertension = if ("Hypertension" %in% input$predictors) input$Hypertension else "",
+      HeartDisease = if ("HeartDisease" %in% input$predictors) input$HeartDisease else "",
+      AvgGlucoseLevel = if ("AvgGlucoseLevel" %in% input$predictors) input$AvgGlucoseLevel else "",
+      BMI = if ("Height & Weight" %in% input$predictors) (703*input$Weight / ((input$Height) ^ 2)) else "",
+      EverMarried = if ("EverMarried" %in% input$predictors) input$EverMarried else "",
+      WorkType = if ("WorkType" %in% input$predictors) input$WorkType else "",
+      ResidenceType = if ("ResidenceType" %in% input$predictors) input$ResidenceType else "",
+      SmokingStatus = if ("SmokingStatus" %in% input$predictors) input$SmokingStatus else ""
     )
 
     # Ensure all required columns are present in new_data
@@ -308,12 +389,12 @@ shinyServer(function(input, output){
     new_data <- new_data[, colSums(is.na(new_data)) == 0, drop = FALSE]
 
     # Check for empty data frame
-    if (nrow(new_data) == 0 || ncol(new_data) == 0) {
-      output$prediction <- renderText({
-        "Please select at least one variable and provide its value."
-      })
-      return()
-    }
+    # if (nrow(new_data) == 0 || ncol(new_data) == 0) {
+    #   output$prediction <- renderText({
+    #     "Please select at least one variable and provide its value."
+    #   })
+    #   return()
+    # }
 
     # Ensure factor levels are consistent with training data
     levels_gender <- c("Male", "Female")
@@ -353,18 +434,29 @@ shinyServer(function(input, output){
       )
       new_data <- new_data %>% select(-AvgGlucoseLevel)
     }
+    print(new_data)
 
     # Predict using the stroke model
-    prediction <- predict(model1, new_data, type = "prob")
+    strokePrediction <- predict(model1, new_data, type = "prob")
+    
+    print("strokePrediction:")
+    print(strokePrediction)
+
+    # Saving results
+    result(strokePrediction$.pred_1[1]*100)
+    #result <- list(model_summary = summary(model1), strokePrediction, input$predictors)
+    #regressionResult(result)
 
     # Output the prediction
     output$prediction <- renderText({
-      if (nrow(prediction) > 0) {
-        paste("Probability of having a stroke:", round(prediction$.pred_1[1], 4))
+      if (nrow(strokePrediction) > 0) {
+        paste("Probability of having a stroke:", round(result(), 4), "%")
       } else {
         "Prediction could not be made. Please check your inputs."
       }
     })
+
+
 
     # Calculate and display model coefficients
     coefs <- model1 %>%
@@ -380,8 +472,7 @@ shinyServer(function(input, output){
       ggplot(coefs, aes(x = estimate, y = reorder(term, estimate))) +
         geom_point() +
         geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-        labs(title = "Effect Sizes of Predictors in Logistic Regression Model",
-             x = "Coefficient Estimate",
+        labs(x = "Coefficient Estimate",
              y = "Predictors") +
         theme_minimal()
     })
@@ -411,24 +502,81 @@ shinyServer(function(input, output){
         select(where(is.numeric))
 
       # Compute the correlation matrix using complete cases to handle any NAs
+      correlation_matrix <- cor(StrokeData_numeric)
+
+      # Print the correlation matrix
+      output$correlation_plot <- renderPlot({
+        corrplot(correlation_matrix, method = "color")
+      })
+    } else {
+      output$correlation_plot <- renderPlot({
+        plot.new()
+        text("Not enough variables selected for correlation matrix")
+      })
     }
-    #   correlation_matrix <- cor(StrokeData_numeric, use = "complete.obs")
-    #
-    #   # Print the correlation matrix
-    #   output$correlation_plot <- renderPlot({
-    #     corrplot(correlation_matrix, method = "color")
-    #   })
-    # } else {
-    #   output$correlation_plot <- renderPlot({
-    #     plot.new()
-    #     text(0.5, 0.5, "Not enough variables selected for correlation matrix")
-    #   })
-    # }
+
+
     })
-
-
-
   
+  
+  
+
+
+
+
+  # Rendering regression results
+  output$regressionResults <- renderPrint({
+    if (is.null(result())) {
+      "Run the regression to see the results."
+    } else {
+      paste("Stroke probability:", round(result(), 4), "%")
+    }
+  })
+
+  # Rendering saved results table
+  output$savedResultsTable <- renderDT({
+    if (length(savedResults()) == 0) {
+      return()
+    } else {
+      datatable(
+      data.frame(
+        paste(savedResults())
+      ),
+      options = list(
+        pageLength = 10,
+        lengthMenu = c(5, 10, 15),
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        class = 'cell-border stripe'
+      ),
+      colnames = c("Probability"),
+      style = 'jqueryui'
+      )
+      # %>% 
+      #   formatStyle(
+      #     'Probability',
+      #     backgroundColor = styleInterval(20, c('lightblue', 'lightgreen'))
+      #   )
+    }
+  })
+  
+  # Observing event to save results
+  observeEvent(input$saveResult, {
+    if (is.null(result())) {
+      return ()
+    } else {
+      savedResults(c(savedResults(), result()))
+    }
+  })
+
+  # Observing event to clear table
+  observeEvent(input$clearTable, {
+    output$prediction <- renderText({""})
+    result(NULL)
+    savedResults(list())
+   })
+
+
   
   
 })
